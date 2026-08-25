@@ -1,7 +1,7 @@
 # Supplier Selection & Dynamic Volume Allocation
 
 A Mixed-Integer Linear Programming (MILP) system that decides how much to
-purchase from which vendor — under real-world MOQ, capacity, and BOM
+purchase from which vendor — under MOQ, capacity, and BOM
 tolerance constraints — while minimizing cost or a blended price/lead-time
 risk score. Built with [OR-Tools](https://developers.google.com/optimization)
 (SCIP backend).
