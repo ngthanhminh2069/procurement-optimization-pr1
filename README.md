@@ -14,7 +14,7 @@ sourcing decisions made without optimization.*
 
 ## Executive summary
 
-Four analyses, four different business questions, run on the real
+Four analyses, four different business questions, run on the nearly-real
 66-product / 23-vendor dataset in this repo:
 
 | Analysis | Business question it answers | Headline number |
@@ -84,13 +84,13 @@ Regenerate these numbers and charts anytime with `python -m src.run_analysis`.
 ## Dataset
 
 `data/procurement_data.xlsx` — 66 products, 23 vendors, 128
-vendor-product quotations. This is a real sourcing dataset, included
+vendor-product quotations. This is a nearly-real sourcing dataset, included
 directly in the repo (no synthetic placeholder — see "Using your own
 data" below if you want to swap in something else).
 
-## Shadow price analysis (real dataset)
+## Shadow price analysis (nearly-real dataset)
 
-Ran on `data/procurement_data.xlsx` — a real 23-vendor / 66-product
+Ran on `data/procurement_data.xlsx` — a nearly-real 23-vendor / 66-product
 procurement dataset. Shadow prices were computed via **fix-and-relax**
 (see [`docs/methodology.md`](docs/methodology.md#extending-this-shadow-price-analysis-and-the-pareto-frontier))
 and independently validated by re-solving the full MILP after perturbing
