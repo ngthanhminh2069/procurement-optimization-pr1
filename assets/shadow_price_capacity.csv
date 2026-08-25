@@ -1,0 +1,15 @@
+product_id,vendor_id,capacity,shadow_price,interpretation
+VN-MT041,VN-VD02,10,740.0,$ saved per extra unit of this vendor's capacity
+VN-MT028,VN-VD03,6,350.0,$ saved per extra unit of this vendor's capacity
+VN-MT057,VN-VD10,15,75.0,$ saved per extra unit of this vendor's capacity
+VN-MT021,VN-VD10,15,46.0,$ saved per extra unit of this vendor's capacity
+VN-MT049,VN-VD09,30,18.0,$ saved per extra unit of this vendor's capacity
+VN-MT030,VN-VD07,15,10.0,$ saved per extra unit of this vendor's capacity
+VN-MT064,VN-VD05,25,5.0,$ saved per extra unit of this vendor's capacity
+VN-MT024,VN-VD04,10,4.0,$ saved per extra unit of this vendor's capacity
+VN-MT014,VN-VD16,1500,0.5,$ saved per extra unit of this vendor's capacity
+VN-MT051,VN-VD14,600,0.3999999999999999,$ saved per extra unit of this vendor's capacity
+VN-MT003,VN-VD16,1000,0.34999999999999987,$ saved per extra unit of this vendor's capacity
+VN-MT013,VN-VD18,1500,0.23999999999999932,$ saved per extra unit of this vendor's capacity
+VN-MT013,VN-VD16,200,0.09999999999999964,$ saved per extra unit of this vendor's capacity
+VN-MT060,VN-VD16,1000,0.040000000000000036,$ saved per extra unit of this vendor's capacity
