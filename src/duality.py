@@ -95,6 +95,9 @@ def compute_unused_vendor_opportunity(problem: ProcurementProblem) -> pd.DataFra
             }
         )
 
+    if not rows:
+        return pd.DataFrame(columns=["vendor_id", "cost_if_forced_in", "opportunity_cost", "interpretation"])
+
     return pd.DataFrame(rows).sort_values("opportunity_cost", na_position="last")
 
 
@@ -315,9 +318,25 @@ def compute_shadow_prices(problem: ProcurementProblem) -> ShadowPriceReport:
             }
         )
 
+    bom_cov = (
+        pd.DataFrame(bom_coverage_rows).sort_values("shadow_price", ascending=False)
+        if bom_coverage_rows
+        else pd.DataFrame(columns=["product_id", "bom_min_qty", "shadow_price", "interpretation"])
+    )
+    cap_cov = (
+        pd.DataFrame(capacity_rows).sort_values("shadow_price", ascending=False)
+        if capacity_rows
+        else pd.DataFrame(columns=["product_id", "vendor_id", "capacity", "shadow_price", "interpretation"])
+    )
+    bom_tol = (
+        pd.DataFrame(bom_tolerance_rows).sort_values("shadow_price")
+        if bom_tolerance_rows
+        else pd.DataFrame(columns=["product_id", "bom_max_qty", "shadow_price", "interpretation"])
+    )
+
     return ShadowPriceReport(
-        bom_coverage=pd.DataFrame(bom_coverage_rows).sort_values("shadow_price", ascending=False),
-        capacity=pd.DataFrame(capacity_rows).sort_values("shadow_price", ascending=False) if capacity_rows else pd.DataFrame(columns=["product_id", "vendor_id", "capacity", "shadow_price", "interpretation"]),
-        bom_tolerance=pd.DataFrame(bom_tolerance_rows).sort_values("shadow_price"),
+        bom_coverage=bom_cov,
+        capacity=cap_cov,
+        bom_tolerance=bom_tol,
         base_total_cost=milp_result.total_cost,
     )

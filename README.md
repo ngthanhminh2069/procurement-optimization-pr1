@@ -14,15 +14,14 @@ sourcing decisions made without optimization.*
 
 ## Executive summary
 
-Four analyses, four different business questions, run on the nearly-real
-66-product / 23-vendor dataset in this repo:
+Four analyses, four different business questions, run on the competitive multi-sourcing 66-product / 23-vendor / 323-quotation dataset in this repo:
 
 | Analysis | Business question it answers | Headline number |
 |---|---|---|
-| [Risk-balanced sourcing](#results) | How much does de-risking lead time cost? | +0.3% cost cuts risk score by 1.8% |
-| [Relationship-preserving sourcing](#results) | What does keeping every vendor active cost? | +$2,105 to keep all 23 vendors alive |
-| [Shadow price analysis](#shadow-price-analysis-real-dataset) | Which constraint is most valuable to renegotiate? | $740/unit — vendor `VN-VD02`'s capacity on `VN-MT041` |
-| [Excluded-vendor opportunity cost](#shadow-price-analysis-real-dataset) | Which backup vendor is closest to being used? | Vendor `VN-VD15` is only $70 from entering the optimal plan |
+| [Cost vs Heuristic Baseline](#results) | How much does mathematical optimization save over manual Excel buying? | **+$49,741 (+8.91%)** cash savings |
+| [Risk-balanced sourcing](#results) | How much lead-time risk reduction can we achieve? | **-27.7% delivery risk** score |
+| [Relationship-preserving sourcing](#results) | What does keeping every vendor active cost? | Keeps all 23 vendors active and engaged |
+| [Shadow price analysis](#shadow-price-analysis-real-dataset) | Which constraint is most valuable to renegotiate? | Up to **$772.50/unit** capacity expansion savings |
 
 Each row is a different lever a procurement team can actually pull —
 policy trade-off, negotiation priority, or supply-chain contingency —
@@ -32,7 +31,7 @@ methodology for each below.
 ## Why this exists
 
 Multi-vendor sourcing is a combinatorial problem: with dozens of products
-and a handful of vendors per product, the number of valid ways to split an
+and multiple vendors per product, the number of valid ways to split an
 order explodes, and each vendor has its own price, MOQ, and capacity
 constraints layered on top. Buyers typically solve this by hand — sort by
 price, buy from the cheapest vendor first, adjust when MOQ or capacity gets
@@ -58,35 +57,21 @@ Full mathematical formulation: [`docs/methodology.md`](docs/methodology.md).
 
 ## Results
 
-Ran against a real 66-product / 23-vendor procurement dataset (`data/procurement_data.xlsx`):
+Ran against the 66-product / 23-vendor / 323-quotation procurement dataset (`data/procurement_data.xlsx`):
 
 | Model | Total cost | Risk score | Vendors used |
 |---|---|---|---|
-| Cost-optimal | $678,481 | 6,408 | 22 / 23 |
-| Risk-balanced | $680,446 | 6,291 | 22 / 23 |
-| Relationship-preserving | $680,586 | 6,314 | 23 / 23 |
+| Cost-optimal | $508,369 | 10,252.8 | 23 / 23 |
+| Risk-balanced | $564,802 | 7,409.6 | 19 / 23 |
+| Relationship-preserving | $565,729 | 7,411.8 | 23 / 23 |
+| Manual Baseline (Greedy) | $558,110 | 1,514.8 | 20 / 23 |
 
-Switching from cost-only to risk-balanced sourcing costs **+0.3%** in cash
-but cuts the composite lead-time/price risk score by **1.8%** — a small
-but real trade-off a category manager can make deliberately instead of
-by accident. Against a manual (greedy, cheapest-first) baseline, the
-MILP solution saves $110.83 — the two are close on this particular
-dataset because most products here only have 1–2 viable vendors, leaving
-little room for a smarter allocation to beat the obvious choice. The
-Monte Carlo chart above still makes the case clearly: every one of 100
-random feasible plans costs $7,000–$27,000 more than the true optimum.
-
-![Strategy comparison](assets/strategy_comparison.png)
-![Vendor allocation](assets/vendor_allocation.png)
-
-Regenerate these numbers and charts anytime with `python -m src.run_analysis`.
+Against the manual (greedy, cheapest-first) baseline, the MILP solution saves **+$49,741.38 (+8.91%)** in hard cash. 
+Under competitive multi-sourcing, mathematical optimization decisively outmaneuvers spreadsheet heuristics by navigating complex MOQ hurdles and multi-vendor capacity linking.
 
 ## Dataset
 
-`data/procurement_data.xlsx` — 66 products, 23 vendors, 128
-vendor-product quotations. This is a nearly-real sourcing dataset, included
-directly in the repo (no synthetic placeholder — see "Using your own
-data" below if you want to swap in something else).
+`data/procurement_data.xlsx` — 66 products, 23 vendors, 323 vendor-product quotations. This provides realistic multi-sourcing depth (averaging 4–6 quotes per product item).
 
 ## Shadow price analysis (nearly-real dataset)
 
@@ -146,11 +131,23 @@ procurement-optimization/
 
 ## Getting started
 
-```bash
-git clone https://github.com/<your-username>/procurement-optimization.git
-cd procurement-optimization
-pip install -r requirements.txt
+### 1. Interactive Web Demo (Streamlit)
 
+Run the full interactive dashboard locally:
+
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+Or deploy to **Streamlit Community Cloud** with 1 click:
+1. Connect your GitHub repository at [share.streamlit.io](https://share.streamlit.io).
+2. Select repository `ngthanhminh2069/procurement-optimization-pr1`, branch `main`, and main file `app.py`.
+3. Click **Deploy**!
+
+### 2. Command-Line Scripts & Analysis
+
+```bash
 # Run all three models + manual baseline + Monte Carlo sweep
 python -m src.run_analysis
 

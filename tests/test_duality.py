@@ -147,3 +147,28 @@ def test_unused_vendor_opportunity_cost_matches_manual_forced_resolve():
 
     manual_delta = forced_cost - base_result.total_cost
     assert reported_delta == pytest.approx(manual_delta, abs=1e-6)
+
+
+def test_compute_unused_vendor_opportunity_when_all_vendors_used():
+    """
+    Ensure compute_unused_vendor_opportunity returns a valid empty DataFrame
+    with proper column names when all vendors are active in the optimal solution.
+    """
+    quotation = pd.DataFrame(
+        {
+            "product_id": ["P1", "P2"],
+            "vendor_id": ["A", "B"],
+            "unit_price": [10.0, 12.0],
+            "MOQ": [10, 10],
+            "Capacity": [100, 100],
+            "lead_time": [20, 20],
+            "oversea_vendor": [0, 0],
+        }
+    )
+    bom = pd.DataFrame({"product_id": ["P1", "P2"], "quantity": [50, 50]})
+    problem = ProcurementProblem(quotation=quotation, bom=bom, bom_tolerance=0.08)
+
+    df = compute_unused_vendor_opportunity(problem)
+    assert df.empty
+    assert "opportunity_cost" in df.columns
+    assert "vendor_id" in df.columns
