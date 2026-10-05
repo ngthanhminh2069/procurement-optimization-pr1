@@ -59,6 +59,10 @@ class SolveResult:
     def is_feasible(self) -> bool:
         return self.status in ("OPTIMAL", "FEASIBLE")
 
+    def __iter__(self):
+        """Support backward-compatible tuple unpacking: allocation, total_cost = result."""
+        return iter((self.allocation, self.total_cost))
+
 
 @dataclass
 class ProcurementProblem:
@@ -269,16 +273,23 @@ def solve_procurement(
     )
 
 
-def solve_manual_baseline(problem: ProcurementProblem) -> tuple[pd.DataFrame, float]:
+def solve_manual_baseline(problem: ProcurementProblem) -> SolveResult:
     """
     Simulate a naive human "buy from the cheapest vendor first" heuristic,
     used as the baseline the MILP result is benchmarked against.
+    Computes true total cost including PO overhead, risk score, and active vendor counts.
     """
     q_df = problem.prepared_quotation.sort_values(by=["product_id", "unit_price"])
     bom_df = problem.bom
 
     allocation = []
-    total_cost = 0.0
+    total_purchase_cost = 0.0
+    total_risk = 0.0
+    selected_vendors: set[str] = set()
+
+    risk_dict = dict(zip(zip(q_df["product_id"], q_df["vendor_id"]), q_df["risk_coeff"]))
+    po_cost_dict = q_df.groupby("vendor_id")["po_cost"].first().to_dict()
+    unique_vendors = set(q_df["vendor_id"].unique())
 
     for row in bom_df.itertuples(index=False):
         p_id = row.product_id
@@ -299,16 +310,33 @@ def solve_manual_baseline(problem: ProcurementProblem) -> tuple[pd.DataFrame, fl
                 actual_buy = v_row.Capacity
 
             if (allocated_for_p + actual_buy) <= target_max:
+                cost = actual_buy * v_row.unit_price
+                risk = actual_buy * risk_dict.get((p_id, v_row.vendor_id), 0.0)
                 allocation.append(
                     {
                         "product_id": p_id,
                         "vendor_id": v_row.vendor_id,
                         "allocated_quantity": actual_buy,
                         "unit_price": v_row.unit_price,
-                        "total_cost": actual_buy * v_row.unit_price,
+                        "lead_time": getattr(v_row, "lead_time", None),
+                        "total_cost": cost,
+                        "risk_contribution": risk,
                     }
                 )
                 allocated_for_p += actual_buy
-                total_cost += actual_buy * v_row.unit_price
+                total_purchase_cost += cost
+                total_risk += risk
+                selected_vendors.add(v_row.vendor_id)
 
-    return pd.DataFrame(allocation), total_cost
+    total_po_cost = sum(po_cost_dict.get(v, 0.0) for v in selected_vendors)
+
+    return SolveResult(
+        status="FEASIBLE",
+        allocation=pd.DataFrame(allocation),
+        total_purchase_cost=total_purchase_cost,
+        total_po_cost=total_po_cost,
+        total_cost=total_purchase_cost + total_po_cost,
+        total_risk=total_risk,
+        n_vendors_used=len(selected_vendors),
+        n_vendors_available=len(unique_vendors),
+    )

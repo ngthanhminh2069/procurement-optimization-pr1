@@ -67,9 +67,18 @@ def test_require_all_vendors_activates_every_vendor(toy_problem):
 
 
 def test_manual_baseline_meets_minimum_quantity(toy_problem):
+    res = solve_manual_baseline(toy_problem)
+    assert res.is_feasible
+    assert res.total_cost > 0
+    assert res.total_cost == res.total_purchase_cost + res.total_po_cost
+    assert res.total_risk >= 0
+    assert res.n_vendors_used > 0
+    assert res.allocation["allocated_quantity"].sum() >= 100
+
+    # Test backward-compatible tuple unpacking
     allocation, cost = solve_manual_baseline(toy_problem)
-    assert cost > 0
-    assert allocation["allocated_quantity"].sum() >= 100
+    assert cost == res.total_cost
+    assert len(allocation) == len(res.allocation)
 
 
 def test_risk_weights_must_sum_to_one():

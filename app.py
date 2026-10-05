@@ -139,12 +139,13 @@ def run_all_strategies(
     res_cost = solve_procurement(problem, objective_type="cost", require_all_vendors=False)
     res_risk = solve_procurement(problem, objective_type="risk", require_all_vendors=False)
     res_rel = solve_procurement(problem, objective_type="risk", require_all_vendors=True)
-    baseline_alloc, baseline_cost = solve_manual_baseline(problem)
+    res_baseline = solve_manual_baseline(problem)
 
     results = {
         "cost": res_cost,
         "risk": res_risk,
         "risk_all_vendors": res_rel,
+        "baseline": res_baseline,
     }
 
     summary_rows = [
@@ -174,15 +175,15 @@ def run_all_strategies(
         },
         {
             "Model": "Manual baseline (Greedy)",
-            "Total cost": baseline_cost,
-            "Purchase cost": baseline_cost,
-            "PO overhead": 0.0,
-            "Risk score": 0.0,
-            "Vendors used": "N/A",
+            "Total cost": res_baseline.total_cost,
+            "Purchase cost": res_baseline.total_purchase_cost,
+            "PO overhead": res_baseline.total_po_cost,
+            "Risk score": res_baseline.total_risk,
+            "Vendors used": f"{res_baseline.n_vendors_used}/{res_baseline.n_vendors_available}",
         },
     ]
 
-    return results, pd.DataFrame(summary_rows), baseline_cost
+    return results, pd.DataFrame(summary_rows), res_baseline.total_cost
 
 
 def get_shadow_price_report(problem: ProcurementProblem):
