@@ -27,6 +27,9 @@ from src.insights import (
 )
 from src.landing_page import render_landing_page
 from src.simulation import run_feasible_solution_sweep
+import importlib
+import src.solver
+importlib.reload(src.solver)
 from src.solver import ProcurementProblem, SolveResult, solve_manual_baseline, solve_procurement
 from src.visualizations import (
     create_monte_carlo_chart,
@@ -140,6 +143,32 @@ def run_all_strategies(
     res_risk = solve_procurement(problem, objective_type="risk", require_all_vendors=False)
     res_rel = solve_procurement(problem, objective_type="risk", require_all_vendors=True)
     res_baseline = solve_manual_baseline(problem)
+    if not hasattr(res_baseline, "total_cost"):
+        alloc_df, b_cost = res_baseline
+        q_df = problem.prepared_quotation
+        unique_v = set(q_df["vendor_id"].unique())
+        used_v = set(alloc_df["vendor_id"].unique()) if not alloc_df.empty else set()
+        po_dict = q_df.groupby("vendor_id")["po_cost"].first().to_dict()
+        po_cost = sum(po_dict.get(v, 0.0) for v in used_v)
+        risk_dict = dict(zip(zip(q_df["product_id"], q_df["vendor_id"]), q_df["risk_coeff"]))
+        tot_risk = (
+            sum(
+                r["allocated_quantity"] * risk_dict.get((r["product_id"], r["vendor_id"]), 0.0)
+                for _, r in alloc_df.iterrows()
+            )
+            if not alloc_df.empty
+            else 0.0
+        )
+        res_baseline = SolveResult(
+            status="FEASIBLE",
+            allocation=alloc_df,
+            total_purchase_cost=b_cost,
+            total_po_cost=po_cost,
+            total_cost=b_cost + po_cost,
+            total_risk=tot_risk,
+            n_vendors_used=len(used_v),
+            n_vendors_available=len(unique_v),
+        )
 
     results = {
         "cost": res_cost,
